@@ -9,8 +9,13 @@
 
 Nodo* RedBayesiana::obtener_o_crear(const std::string& nombre){
     auto it = nodos.find(nombre);
+    // Si no existe el nodo con este nombre, lo creamos y lo almacenamos
+    // en el mapa `nodos`. Usamos std::make_unique para garantizar
+    // la correcta construcción y propiedad exclusiva.
     if(it==nodos.end()) nodos[nombre] = std::make_unique<Nodo>(nombre);
-        return nodos[nombre].get(); // Ensure we return a valid pointer
+    // Devolvemos el puntero crudo gestionado por el unique_ptr. Es
+    // seguro mientras el mapa `nodos` mantenga la entrada.
+    return nodos[nombre].get(); 
 }
 
 Nodo* RedBayesiana::obtener(const std::string& nombre) const{
@@ -29,6 +34,9 @@ void RedBayesiana::cargar_estructura(const std::string& ruta){
             throw std::runtime_error("Formato inválido en estructura línea "+std::to_string(ln)+": "+linea);
         std::string padre = recortar(partes[0]);
         std::string hijo  = recortar(partes[1].substr(1));
+        // Construir la relación dirigida padre -> hijo. Se añaden
+        // punteros crudos entre nodos; la propiedad de memoria está
+        // en el mapa `nodos` y evita fugas.
         Nodo* u = obtener_o_crear(padre);
         Nodo* v = obtener_o_crear(hijo);
         v->padres.push_back(u);
@@ -54,7 +62,10 @@ void RedBayesiana::cargar_cpts(const std::string& ruta){
             padres.clear(); for(auto &pn: nombres){ if(pn.empty()) continue; padres.push_back(obtener_o_crear(pn)); }
         }else if(t=="TABLE"){
             if(!actual) throw std::runtime_error("TABLE sin NODE en línea "+std::to_string(ln));
-            // establecer la tabla ahora que conocemos los padres
+            // Llegamos a la sección TABLE: aquí sabemos que las filas
+            // siguientes dependen de los padres declarados. Inicializamos
+            // la TablaProbabilidad con la variable objetivo (`actual`)
+            // y el vector `padres` en el orden declarado.
             actual->cpt->establecer(actual, padres);
         }else if(t=="END"){
             if(!actual) throw std::runtime_error("END sin NODE en línea "+std::to_string(ln));
@@ -65,6 +76,7 @@ void RedBayesiana::cargar_cpts(const std::string& ruta){
             auto toks = dividir(recortar(t.substr(2)), ' ');
             std::vector<double> probs; probs.reserve(toks.size());
             for(auto &x: toks) probs.push_back(std::stod(x));
+            // Caso especial: fila `p:` para nodos sin padres (prior).
             actual->cpt->establecer(actual, {});
             std::vector<std::pair<std::string,std::string>> vacio;
             actual->cpt->agregar_fila(vacio, actual->valores, probs);
@@ -76,13 +88,18 @@ void RedBayesiana::cargar_cpts(const std::string& ruta){
             std::vector<std::pair<std::string,std::string>> asign;
             if(!izq.empty()){
                 auto pares = dividir(izq, ',');
-                for(auto &kv: pares){ auto eq = kv.find('='); if(eq==std::string::npos) throw std::runtime_error("Falta '=' en línea "+std::to_string(ln));
+                // izq tiene piezas del tipo padre=valor separadas por ','
+                for(auto &kv: pares){
+                    auto eq = kv.find('='); if(eq==std::string::npos) throw std::runtime_error("Falta '=' en línea "+std::to_string(ln));
                     std::string k = recortar(kv.substr(0,eq)); std::string v = recortar(kv.substr(eq+1));
                     asign.push_back({k,v});
                 }
             }
             auto toks = dividir(der, ' ');
             std::vector<double> probs; for(auto &x: toks) if(!x.empty()) probs.push_back(std::stod(x));
+            // Añadir la fila a la tabla: la combinación de asignaciones de
+            // padres (asign) y el vector de probabilidades para cada
+            // valor de la variable objetivo.
             actual->cpt->agregar_fila(asign, actual->valores, probs);
         }
     }

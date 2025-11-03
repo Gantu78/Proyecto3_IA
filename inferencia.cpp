@@ -7,9 +7,23 @@
 #include <sstream>
 
 static std::vector<Nodo*> orden_topologico(const RedBayesiana& rb){
+    // algoritmo de Kahn para orden topologico.
+    // Utilizamos un mapa de grados de entrada y una cola de nodos de grado de entrada cero..
     std::unordered_map<Nodo*,int> indeg; std::queue<Nodo*> q; std::vector<Nodo*> topo;
-    for(const auto &kv: rb.nodos){ auto* n = kv.second.get(); indeg[n]=(int)n->padres.size(); if(indeg[n]==0) q.push(n);} 
-    while(!q.empty()){ auto* u=q.front(); q.pop(); topo.push_back(u); for(auto* v: u->hijos){ if(--indeg[v]==0) q.push(v);} }
+    // Inicializar indegrees y encolar raíces
+    for(const auto &kv: rb.nodos){
+        auto* n = kv.second.get();
+        indeg[n] = (int)n->padres.size();
+        if(indeg[n] == 0) q.push(n);
+    }
+    // Procesar nodos con indegree 0, decrementando los hijos.
+    while(!q.empty()){
+        auto* u = q.front(); q.pop();
+        topo.push_back(u);
+        for(auto* v: u->hijos){
+            if(--indeg[v] == 0) q.push(v);
+        }
+    }
     return topo;
 }
 
@@ -22,6 +36,9 @@ double InferenceEngine::enumerar_todo(size_t i, std::unordered_map<std::string,s
     auto it = evidencia.find(Y->nombre);
     std::string indent(depth*2, ' ');
     if(it!=evidencia.end()){
+        // Caso 1: la variable Y está fijada por la evidencia. No
+        // debemos sumar sobre sus valores: usamos directamente la
+        // probabilidad condicional P(Y = y | padres) y seguimos.
         double py = Y->cpt->condicionada(evidencia, it->second);
         if(trace){ (*trace) << indent << "Usando evidencia: "<<Y->nombre<<"="<<it->second<<" -> P="<<py<<"\n"; }
         return py * enumerar_todo(i+1, evidencia, trace, depth+1);
@@ -34,6 +51,8 @@ double InferenceEngine::enumerar_todo(size_t i, std::unordered_map<std::string,s
             if(trace){ (*trace) << indent << "  Probar "<<Y->nombre<<"="<<y<<" -> P="<<py<<"\n"; }
             double sub = enumerar_todo(i+1, evidencia, trace, depth+2);
             double contrib = py * sub;
+            // Cada valor de Y contribuye con P(Y=y | padres) * (suma
+            // recursiva sobre las variables posteriores).
             if(trace){ (*trace) << indent << "  Resultado recursivo: "<<sub<<" contrib="<<contrib<<"\n"; }
             suma += contrib;
             evidencia.erase(Y->nombre);
@@ -54,10 +73,14 @@ std::vector<std::pair<std::string,double>> InferenceEngine::consultar_enumeracio
 
     std::vector<std::pair<std::string,double>> dist; dist.reserve(Q->valores.size());
     for(const std::string& x: Q->valores){
-        auto e = evidencia; e[variable]=x;
+        // Para cada valor x de la variable de consulta, fijamos la
+        // evidencia extendida e y llamamos a la enumeración completa.
+        auto e = evidencia; e[variable] = x;
         if(trace){ (*trace) << "--- Calcular P("<<variable<<"="<<x<<" , evidencia) ---\n"; }
         double v = enumerar_todo(0, e, trace, 0);
         if(trace){ (*trace) << "  => P_unorm("<<variable<<"="<<x<<") = "<<v<<"\n\n"; }
+        // v es la probabilidad no normalizada; la normalización se
+        // hace tras computar todas las entradas de la distribución.
         dist.push_back({x, v});
     }
     double Z=0; for(auto &p: dist) Z+=p.second; if(Z==0) throw std::runtime_error("Normalización 0");

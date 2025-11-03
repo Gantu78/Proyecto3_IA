@@ -38,6 +38,8 @@ int main(int argc, char** argv){
         else if(cmd.rfind("MOSTRAR:CPTS",0)==0){ rb.imprimir_cpts(std::cout); }
         else if(cmd.rfind("CONSULTAR:",0)==0 || cmd.rfind("CONSULTAR_TRACE:",0)==0){
             bool trace = (cmd.rfind("CONSULTAR_TRACE:",0)==0);
+            // extraer la parte después del prefijo CONSULTAR: o CONSULTAR_TRACE:
+            // trace?16:10 calcula el desplazamiento del substring
             std::string resto = recortar(cmd.substr(trace?16:10));
             auto barra = resto.find('|');
             std::string var = recortar(barra==std::string::npos? resto : resto.substr(0,barra));

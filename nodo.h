@@ -14,6 +14,10 @@ struct Nodo{
     std::vector<Nodo*> hijos;
     std::unique_ptr<TablaProbabilidad> cpt; // tabla de probabilidad condicional
 
+    // Nodo representa una variable aleatoria en la red. Mantiene
+    // - `valores`: dominio discreto de la variable
+    // - listas de punteros a padres/hijos (las relaciones dirigidas)
+    // - un unique_ptr a su CPT (TablaProbabilidad) para gestión RAII
     explicit Nodo(std::string n="");
 };
 

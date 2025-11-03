@@ -23,7 +23,11 @@ public:
 
 private:
     const RedBayesiana& rb_;
-    std::vector<Nodo*> orden_; // orden topológico precalculado
+    // Orden topológico precalculado de nodos de la red. Se usa para
+    // recorrer las variables en un orden consistente durante la
+    // enumeración (Kahn). Guardar este vector evita recalcularlo
+    // en cada llamada a la función de enumeración recursiva.
+    std::vector<Nodo*> orden_;
 
     double enumerar_todo(size_t i, std::unordered_map<std::string,std::string>& evidencia,
                          std::ostream* trace, int depth) const;
