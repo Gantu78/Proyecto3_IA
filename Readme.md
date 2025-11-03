@@ -124,8 +124,8 @@ El programa recibe como mínimo los dos archivos de entrada:
 |----------|--------------|
 | `MOSTRAR:ESTRUCT` | Muestra la estructura de la red (orden topológico y padres). |
 | `MOSTRAR:CPTS` | Imprime todas las tablas de probabilidad (CPTs). |
-| `CONSULTAR: <Var> | <EVIDENCIA>` | Ejecuta una inferencia exacta. Ejemplo:<br>`CONSULTAR: Cita | Tren=a_tiempo` |
-| `CONSULTAR_TRACE: <Var> | <EVIDENCIA>` | Igual que `CONSULTAR`, pero mostrando paso a paso la enumeración. |
+| `CONSULTAR: <Var> <EVIDENCIA>` | Ejecuta una inferencia exacta. Ejemplo:<br>`CONSULTAR: Cita | Tren=a_tiempo` |
+| `CONSULTAR_TRACE: <Var>  <EVIDENCIA>` | Igual que `CONSULTAR`, pero mostrando paso a paso la enumeración. |
 
 ---
 
