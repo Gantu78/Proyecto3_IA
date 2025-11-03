@@ -1,0 +1,143 @@
+Proyecto3IA — Motor de inferencia por enumeración (Redes Bayesianas)
+===============================================================
+
+Descripción
+-----------
+Este proyecto es un pequeño motor de inferencia por enumeración para Redes Bayesianas, desarrollado en C++ (estilo orientado a objetos). Permite:
+
+- Cargar la estructura de una red desde un archivo de texto (`estructura.txt`).
+- Cargar las tablas de probabilidad condicional (CPTs) desde un archivo (`cpts.txt`).
+- Mostrar la estructura y las CPTs por consola.
+- Realizar consultas de probabilidad condicional usando enumeración exacta.
+- Generar una traza paso a paso del proceso de inferencia para auditoría y depuración.
+
+El código fuente incluye módulos principales:
+
+- `main.cpp` — interfaz de línea de comandos y parsing de comandos.
+- `red_bayesiana.*` — carga y representación de la red y sus nodos.
+- `tabla_probabilidad.*` — estructuras para las CPTs y su impresión.
+- `inferencia.*` — motor OO de inferencia por enumeración y trazado.
+- `util.*` — utilidades (parsing, trimming, empaquetado de claves).
+
+Requisitos
+----------
+
+- Compilador C++ con soporte C++17 (g++ 7+ recomendado).
+- En Windows: MinGW-w64 o MSYS2 (o usar WSL con gcc/g++ de Linux).
+- Opcional (para depuración): AddressSanitizer (ASAN) y debugger (`gdb`).
+
+Compilación (rápida)
+--------------------
+
+Desde WSL / Linux (recomendado):
+
+```bash
+g++ -std=c++17 -O2 -Wall -Wextra main.cpp red_bayesiana.cpp inferencia.cpp tabla_probabilidad.cpp nodo.cpp util.cpp -I. -o bn
+```
+
+Si quieres un binario de depuración con sanitizadores (útil para detectar errores de memoria):
+
+```bash
+g++ -std=c++17 -g -O0 -fsanitize=address,undefined -fno-omit-frame-pointer main.cpp red_bayesiana.cpp inferencia.cpp tabla_probabilidad.cpp nodo.cpp util.cpp -I. -o bn_asan
+```
+
+En Windows (PowerShell) con MinGW en PATH:
+
+```powershell
+g++ -std=c++17 -O2 -Wall -Wextra main.cpp red_bayesiana.cpp inferencia.cpp tabla_probabilidad.cpp nodo.cpp util.cpp -I. -o bn.exe
+```
+
+Archivos de entrada: formato breve
+--------------------------------
+
+estructura.txt
+ - Cada línea no vacía y no comentada describe una arista 'Padre -> Hijo'.
+ - Comentarios: líneas que empiezan con `#`.
+
+Ejemplo:
+
+```
+# A -> B (A es padre de B)
+Lluvia -> Mantenimiento
+Lluvia -> Tren
+Mantenimiento -> Tren
+Tren -> Cita
+```
+
+cpts.txt
+ - Formato sencillo por bloques para cada variable.
+ - Bloque:
+
+```
+NODE <Nombre>
+VALUES: <valor1> <valor2> ...
+PARENTS: <Padre1> <Padre2> ...   # opcional (vacío si no tiene padres)
+TABLE
+<líneas de probabilidades>
+END
+```
+
+- Si `TABLE` contiene una línea que empieza con `p:` se interpreta como la fila prior (sin condicionantes): `p: 0.7 0.2 0.1`.
+- Si la tabla tiene padres, cada fila tiene la forma `Padre1=val, Padre2=val : p1 p2 ...`.
+
+Ejemplo (incluido en el repo): `cpts.txt` contiene los bloques para `Lluvia`, `Mantenimiento`, `Tren` y `Cita`.
+
+Uso: comandos principales
+------------------------
+
+El ejecutable recibe al menos dos argumentos: `estructura.txt` y `cpts.txt`. Opcionalmente puedes pasar comandos adicionales que el programa ejecutará en orden:
+
+- MOSTRAR:ESTRUCT
+	- Imprime la estructura (orden topológico) y padres de cada nodo.
+
+- MOSTRAR:CPTS
+	- Imprime las tablas de probabilidad (CPTs) para cada variable.
+
+- CONSULTAR: <Var> | <EVIDENCIA>
+	- Ejecuta una consulta por enumeración. `EVIDENCIA` es una lista separada por comas de asignaciones `Var=valor`.
+	- Ejemplo:
+		- ./bn estructura.txt cpts.txt 'CONSULTAR: Cita | Tren=a_tiempo'
+
+- CONSULTAR_TRACE: <Var> | <EVIDENCIA>
+	- Igual que `CONSULTAR` pero además imprime una traza paso a paso (pensada para depuración y aprendizaje).
+	- Ejemplo:
+		- ./bn estructura.txt cpts.txt 'CONSULTAR_TRACE: Cita | Tren=a_tiempo'
+
+Ejemplos rápidos
+----------------
+
+- Mostrar estructura:
+	./bn estructura.txt cpts.txt MOSTRAR:ESTRUCT
+
+- Mostrar CPTs:
+	./bn estructura.txt cpts.txt MOSTRAR:CPTS
+
+- Consulta simple:
+	./bn estructura.txt cpts.txt 'CONSULTAR: Cita | Tren=a_tiempo'
+
+- Consulta con evidencia múltiple:
+	./bn estructura.txt cpts.txt 'CONSULTAR: Cita | Tren=retrasado, Mantenimiento=no, Lluvia=ligera'
+
+- Consulta con traza (útil para ver cómo se calcula la probabilidad):
+	./bn estructura.txt cpts.txt 'CONSULTAR_TRACE: Cita | Tren=retrasado, Mantenimiento=no, Lluvia=ligera'
+
+
+Depuración y comprobaciones
+---------------------------
+
+- Compila con ASAN si sospechas problemas de memoria:
+	g++ -std=c++17 -g -O0 -fsanitize=address,undefined -fno-omit-frame-pointer ... -o bn_asan
+
+- Si obtienes un segmentation fault, ejecuta con `bn_asan` o instala `gdb` en WSL y genera un backtrace.
+
+Buenas prácticas
+---------------
+
+- Usa comillas simples alrededor del comando de consulta si contiene espacios o caracteres especiales (barra vertical `|`).
+- Valida que `estructura.txt` y `cpts.txt` no contengan líneas con errores de sintaxis (falta `:`, `=` mal puesto, etc.).
+
+
+Contacto / Licencia
+-------------------
+
+Este proyecto es un ejercicio académico. Adáptalo libremente para tus propósitos.
