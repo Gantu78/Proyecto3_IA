@@ -1,0 +1,34 @@
+NODE Lluvia
+VALUES: ninguna ligera fuerte
+TABLE
+p: 0.7 0.2 0.1
+END
+
+NODE Mantenimiento
+VALUES: si no
+PARENTS: Lluvia
+TABLE
+Lluvia=ninguna : 0.4 0.6
+Lluvia=ligera  : 0.2 0.8
+Lluvia=fuerte  : 0.1 0.9
+END
+
+NODE Tren
+VALUES: a_tiempo retrasado
+PARENTS: Lluvia Mantenimiento
+TABLE
+Lluvia=ninguna, Mantenimiento=si : 0.8 0.2
+Lluvia=ninguna, Mantenimiento=no : 0.9 0.1
+Lluvia=ligera,  Mantenimiento=si : 0.6 0.4
+Lluvia=ligera,  Mantenimiento=no : 0.7 0.3
+Lluvia=fuerte,  Mantenimiento=si : 0.4 0.6
+Lluvia=fuerte,  Mantenimiento=no : 0.5 0.5
+END
+
+NODE Cita
+VALUES: asiste falta
+PARENTS: Tren
+TABLE
+Tren=a_tiempo : 0.9 0.1
+Tren=retrasado: 0.6 0.4
+END

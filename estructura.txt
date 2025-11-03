@@ -1,0 +1,5 @@
+# A -> B (A es padre de B)
+Lluvia -> Mantenimiento
+Lluvia -> Tren
+Mantenimiento -> Tren
+Tren -> Cita
