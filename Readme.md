@@ -1,81 +1,6 @@
 Proyecto3IA — Motor de inferencia por enumeración (Redes Bayesianas)
-===============================================================
 
-Descripción
------------
-Este proyecto es un pequeño motor de inferencia por enumeración para Redes Bayesianas, desarrollado en C++ (estilo orientado a objetos). Permite:
-
-- Cargar la estructura de una red desde un archivo de texto (`estructura.txt`).
-- Cargar las tablas de probabilidad condicional (CPTs) desde un archivo (`cpts.txt`).
-- Mostrar la estructura y las CPTs por consola.
-- Realizar consultas de probabilidad condicional usando enumeración exacta.
-- Generar una traza paso a paso del proceso de inferencia para auditoría y depuración.
-
-El código fuente incluye módulos principales:
-
-- `main.cpp` — interfaz de línea de comandos y parsing de comandos.
-- `red_bayesiana.*` — carga y representación de la red y sus nodos.
-- `tabla_probabilidad.*` — estructuras para las CPTs y su impresión.
-- `inferencia.*` — motor OO de inferencia por enumeración y trazado.
-- `util.*` — utilidades (parsing, trimming, empaquetado de claves).
-
-Requisitos
-----------
-
-- Compilador C++ con soporte C++17 (g++ 7+ recomendado).
-- En Windows: MinGW-w64 o MSYS2 (o usar WSL con gcc/g++ de Linux).
-- Opcional (para depuración): AddressSanitizer (ASAN) y debugger (`gdb`).
-
-Compilación (rápida)
---------------------
-
-Desde WSL / Linux (recomendado):
-
-```bash
-g++ -std=c++17 -O2 -Wall -Wextra main.cpp red_bayesiana.cpp inferencia.cpp tabla_probabilidad.cpp nodo.cpp util.cpp -I. -o bn
-```
-
-Si quieres un binario de depuración con sanitizadores (útil para detectar errores de memoria):
-
-```bash
-g++ -std=c++17 -g -O0 -fsanitize=address,undefined -fno-omit-frame-pointer main.cpp red_bayesiana.cpp inferencia.cpp tabla_probabilidad.cpp nodo.cpp util.cpp -I. -o bn_asan
-```
-
-En Windows (PowerShell) con MinGW en PATH:
-
-```powershell
-g++ -std=c++17 -O2 -Wall -Wextra main.cpp red_bayesiana.cpp inferencia.cpp tabla_probabilidad.cpp nodo.cpp util.cpp -I. -o bn.exe
-```
-
-Archivos de entrada: formato breve
---------------------------------
-
-estructura.txt
- - Cada línea no vacía y no comentada describe una arista 'Padre -> Hijo'.
- - Comentarios: líneas que empiezan con `#`.
-
-Ejemplo:
-
-```
-# A -> B (A es padre de B)
-Lluvia -> Mantenimiento
-Lluvia -> Tren
-Mantenimiento -> Tren
-Tren -> Cita
-```
-
-cpts.txt
- - Formato sencillo por bloques para cada variable.
- - Bloque:
-
-```
-NODE <Nombre>
-VALUES: <valor1> <valor2> ...
-PARENTS: <Padre1> <Padre2> ...   # opcional (vacío si no tiene padres)
-TABLE
-<líneas de probabilidades>
-END
-```# 🎓 Proyecto 3 — Motor de Inferencia por Enumeración (Redes Bayesianas)
+# 🎓 Proyecto 3 — Motor de Inferencia por Enumeración (Redes Bayesianas)
 
 > 🧠 *Implementación en C++ orientado a objetos para realizar inferencias exactas sobre Redes Bayesianas mediante enumeración.*
 
@@ -134,15 +59,6 @@ g++ -std=c++17 -g -O0 -fsanitize=address,undefined -fno-omit-frame-pointer src/*
 ```powershell
 g++ -std=c++17 -O2 -Wall -Wextra src/*.cpp -Iinclude -o bn.exe
 ```
-
-### 🔹 Con Makefile
-
-```bash
-make          # Compila el proyecto
-make clean    # Limpia binarios y objetos
-```
-
----
 
 ## 📂 Archivos de entrada
 
